@@ -46,7 +46,7 @@ def get_objective_Catboost(X_train: pd.DataFrame, y_train: pd.Series):
             sampling_frequency = "PerTree"
         min_data_in_leaf = trial.suggest_int("min_data_in_leaf", 1, 20)
         border_count = trial.suggest_int("border_count", 5, 254)
-        bootstrap_type = trial.suggest_categorical("bootstrap_type", ["Bayesian", "Bernoulli", "MVS"])
+        bootstrap_type = trial.suggest_categorical("bootstrap_type", ["Bayesian", "Bernoulli", "MVS"]) 
         if bootstrap_type == "Bayesian":
             bagging_temperature = trial.suggest_float("bagging_temperature", 0, 10)
         elif bootstrap_type in ("Bernoulli", "MVS"):
@@ -65,7 +65,7 @@ def get_objective_Catboost(X_train: pd.DataFrame, y_train: pd.Series):
             'min_data_in_leaf': min_data_in_leaf,
             'border_count': border_count,
             'bootstrap_type': bootstrap_type,
-            'loss_function': "MAE",
+            'loss_function': "MAE", #Changed from MAE
             'random_seed': 42,
             'verbose': False,
             'thread_count': 16
@@ -88,7 +88,7 @@ def get_objective_Catboost(X_train: pd.DataFrame, y_train: pd.Series):
             label=y_train,
         )
         
-
+        #Does cross validation on the hyperparameters, 10 folds
         result = cb.cv(
             stores_train_catboost,
             params,
@@ -103,7 +103,7 @@ def get_objective_Catboost(X_train: pd.DataFrame, y_train: pd.Series):
     return objective
 
 
-def fit_CatBoost(params: dict, X: pd.DataFrame, y: pd.Series, valid_size: float = 0.1) -> cb.CatBoostRegressor:
+def fit_CatBoost(params: dict, X: pd.DataFrame, y: pd.Series, valid_size: float = 0.3) -> cb.CatBoostRegressor:
     """
     Performs CatBoost on the dataset above given some param dictionary
     which is determined by Optuna.
@@ -124,8 +124,8 @@ def fit_CatBoost(params: dict, X: pd.DataFrame, y: pd.Series, valid_size: float 
 
     mod = cb.CatBoostRegressor(
         **params,
-        thread_count=16,
-        loss_function='MAE',
+        thread_count=-1,
+        loss_function='MAE',#These two are changed from MAE to RMSE
         eval_metric='MAE',
         random_seed=42,
         verbose=False
